@@ -11,6 +11,33 @@ packages = [{include = "keyring_subprocess", from = "src"}]
 python = "^3.7"
 
 
+[tool.poetry.group.dev.dependencies]
+nox = "^2022.1.7"
+pytest = "^7.1.1"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.vendoring]
+destination = "src/keyring_subprocess/_vendor/"
+requirements = "src/keyring_subprocess/_vendor/vendor.txt"
+namespace = ""
+
+protected-files = ["__init__.py", "README.rst", "vendor.txt"]
+
+[tool.vendoring.transformations]
+drop = [
+  # contains unnecessary scripts
+  "bin/",
+  "zipp.pyi",
+]
+
+[tool.vendoring.typing-stubs]
+six = []
+distro = []
+
+[tool.vendoring.license.directories]
+
+[tool.vendoring.license.fallback-urls]
