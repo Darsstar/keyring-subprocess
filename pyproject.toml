@@ -6,14 +6,15 @@ license = "MIT"
 authors = ["Dos Moonen <darsstar@gmail.com>"]
 readme = "README.md"
 packages = [{include = "keyring_subprocess", from = "src"}]
+include = ["keyring-subprocess.pth"]
+
+[tool.poetry.plugins."keyring.backends"]
+subprocess = "keyring_subprocess.backend:SubprocessBackend"
+
 
 [tool.poetry.dependencies]
 python = "^3.7"
 
-
-[tool.poetry.group.dev.dependencies]
-nox = "^2022.1.7"
-pytest = "^7.1.1"
 
 [build-system]
 requires = ["poetry-core"]
