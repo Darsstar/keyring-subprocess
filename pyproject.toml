@@ -9,7 +9,10 @@ packages = [{include = "keyring_subprocess", from = "src"}]
 include = ["keyring-subprocess.pth"]
 
 [tool.poetry.plugins."keyring.backends"]
-subprocess = "keyring_subprocess.backend:SubprocessBackend"
+keyring-subprocess = "keyring_subprocess.backend:SubprocessBackend"
+
+[tool.poetry.plugins."virtualenv.seed"]
+keyring-subprocess = "keyring_subprocess._internal:KeyringSubprocessFromAppData"
 
 
 [tool.poetry.dependencies]

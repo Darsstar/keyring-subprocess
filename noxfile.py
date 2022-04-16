@@ -27,3 +27,9 @@ def keyring(session: nox.Session) -> None:
 @nox.session
 def keyring_subprocess(session: nox.Session) -> None:
     session.install(".")
+
+
+@nox.session
+def virtualenv(session: nox.Session) -> None:
+    session.install("virtualenv")
+    session.install(".")

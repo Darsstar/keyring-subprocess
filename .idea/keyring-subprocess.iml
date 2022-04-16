@@ -9,7 +9,7 @@
       <excludeFolder url="file://$MODULE_DIR$/dist" />
       <excludeFolder url="file://$MODULE_DIR$/.pytest_cache" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.10 (keyring-subprocess) (keyring)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.10 (keyring-subprocess) (virtualenv)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
