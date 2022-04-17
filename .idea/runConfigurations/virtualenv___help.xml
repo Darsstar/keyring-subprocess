@@ -13,7 +13,7 @@
     <option name="ADD_SOURCE_ROOTS" value="false" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="virtualenv" />
-    <option name="PARAMETERS" value="--seeder keyring-subprocess --help" />
+    <option name="PARAMETERS" value="--seeder keyring-subprocess --with-traceback --help" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="true" />

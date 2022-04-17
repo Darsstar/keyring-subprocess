@@ -1,9 +1,18 @@
 """Extensions for virtualenv Seeders to pre-install keyring-subprocess."""
+import re
 import abc
 from virtualenv.seed.wheels import Version
 from virtualenv.seed.embed.via_app_data.via_app_data import FromAppData
 
 VERSION = Version.bundle
+
+
+def pep503(name):
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def normalize(name):
+    return pep503(name).replace("-", "_")
 
 
 def _get_embed_wheel(distribution, for_py_version):
@@ -19,13 +28,38 @@ def _get_embed_wheel(distribution, for_py_version):
     return Wheel.from_path(BUNDLE_FOLDER / wheel)
 
 
+class ParserWrapper:
+    def __init__(self, parser):
+        self.parser = parser
+
+    def __getattr__(self, item):
+        return getattr(self.parser, item)
+
+    def add_argument(self, *args, **kwargs):
+        if "dest" in kwargs and (
+            ("metavar" in kwargs and kwargs["metavar"] == "version")
+            or any(
+                arg for arg in args if isinstance(arg, str) and arg.startswith("--no-")
+            )
+        ):
+            kwargs["dest"] = normalize(kwargs["dest"])
+
+        self.parser.add_argument(*args, **kwargs)
+
+
+class Normalize:
+    def __enter__(self):
+        KeyringSubprocessFromAppData.normalize = True
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        KeyringSubprocessFromAppData.normalize = False
+
+
 class MetaClass(abc.ABCMeta):
     def __init__(cls, name, bases, namespace):
         super().__init__(name, bases, namespace)
-        if not hasattr(cls, "_count"):
-            cls._count = 0
-        if not hasattr(cls, "_inside_add_parser_arguments"):
-            cls._inside_add_parser_arguments = False
+        if not hasattr(cls, "normalize"):
+            cls.normalize = False
 
 
 class KeyringSubprocessFromAppData(FromAppData, metaclass=MetaClass):
@@ -44,50 +78,30 @@ class KeyringSubprocessFromAppData(FromAppData, metaclass=MetaClass):
 
     @classmethod
     def add_parser_arguments(cls, parser, interpreter, app_data):
-        cls._inside_add_parser_arguments = True
+        parser = ParserWrapper(parser)
 
         super(KeyringSubprocessFromAppData, cls).add_parser_arguments(
             parser, interpreter, app_data
         )
 
-        cls._inside_add_parser_arguments = False
-
-        parser.add_argument(
-            "--keyring-subprocess",
-            dest="keyring_subprocess",
-            metavar="version",
-            help="version of keyring-subprocess to install as seed: embed, bundle or exact version",
-            default=VERSION,
-        )
-        parser.add_argument(
-            "--no-keyring-subprocess",
-            dest="no_keyring_subprocess",
-            action="store_true",
-            help="do not install keyring-subprocess",
-            default=False,
-        )
-
     @classmethod
     def distributions(cls):
         """Return the dictionary of distributions."""
-        base = super(KeyringSubprocessFromAppData, cls).distributions()
+        distributions = super(KeyringSubprocessFromAppData, cls).distributions()
+        distributions["keyring-subprocess"] = VERSION
 
-        if cls._inside_add_parser_arguments and cls._count < 2:
-            cls._count += 1
-            base["keyring-subprocess"] = VERSION
+        if cls.normalize:
+            distributions = {
+                normalize(distribution): version
+                for distribution, version in distributions.items()
+            }
 
-        return base
+        return distributions
 
     def distribution_to_versions(self):
-        base = super(KeyringSubprocessFromAppData, self).distribution_to_versions()
-        if not self.no_keyring_subprocess:
-            base["keyring_subprocess"] = VERSION
-        return base
+        with Normalize():
+            return super(KeyringSubprocessFromAppData, self).distribution_to_versions()
 
     def __unicode__(self):
-        base = super(FromAppData, self).__unicode__()
-        msg = ", keyring_subprocess_version={}, no_keyring_subprocess={}".format(
-            self.keyring_subprocess_version,
-            self.no_keyring_subprocess,
-        )
-        return base[:-1] + msg + base[-1]
+        with Normalize():
+            return super(KeyringSubprocessFromAppData, self).__unicode__()
