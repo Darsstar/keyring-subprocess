@@ -5,6 +5,8 @@ description = ""
 license = "MIT"
 authors = ["Dos Moonen <darsstar@gmail.com>"]
 readme = "README.md"
+homepage = "https://keyring-subprocess.darsstar.dev/"
+repository = "https://github.com/Darsstar/keyring-subprocess"
 packages = [{include = "keyring_subprocess", from = "src"}]
 include = ["keyring-subprocess.pth"]
 
