@@ -6,6 +6,7 @@ import subprocess
 from typing import Optional
 
 from keyring import credentials, errors
+from keyring.util import properties
 from keyring.backend import KeyringBackend
 from keyring.backends.chainer import ChainerBackend
 
@@ -13,9 +14,15 @@ SERVICE_NAME = "keyring-subprocess"
 
 
 class SubprocessBackend(KeyringBackend):
-    viable = True
     recursive = False
-    priority = 2
+
+    @properties.ClassProperty
+    @classmethod
+    def priority(cls):
+        if not shutil.which("keyring"):
+            raise RuntimeError("No keyring executable found")
+
+        return 2
 
     def _env(self):
         env = os.environ.copy()
