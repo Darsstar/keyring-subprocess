@@ -1,9 +1,9 @@
 # keyring-subprocess
-A dependency keyring backend that queries an executable `keyring` which can be
+A zero dependency keyring backend that queries an executable `keyring` which can be
 found on PATH.
 
 ## Pros
-- Zero dependencies for a clean `pip list` command and should always be
+- Zero dependencies for a clean `pip list` command and to always be
   compatible with the rest of your dependencies. Which makes it more
   suitable to be added to `PYTHONPATH` after installing with Pip's
   `--target` flag.
@@ -13,11 +13,16 @@ found on PATH.
     to make the vendored `keyring` importable.
 - Provides a `virtualenv` [Seeder](https://virtualenv.pypa.io/en/latest/user_guide.html#seeders)
   named `keyring-subprocess`.
+- Provides a `sitecustomize` entry point for the `sitecustomize-entrypoints`
+  package. This can be useful if you install it somewhere that is not a
+  so-called site directory by using Pip's `--target` flag.
+  - You can install both `keyring-subprocess` and `sitecustomize-entrypoints`
+    in one go by executing `pip install keyring-subprocess[sitecustomize]`.
 
 ## Cons
 - It does require `keyring-subprocess` to be installed in the virtual
   environment associated with the `keyring` executable that is found.
-- Adds or replaces points of failures depending on how you look at it.
+- Adds, or replaces, points of failures. Depending on how you look at it.
 - Being able to import `keyring`, `importlib_metadata` and `zipp` but
   `pip list` not listing them might be confusing and not very helpful during
   debugging.

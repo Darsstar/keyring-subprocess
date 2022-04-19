@@ -19,10 +19,12 @@ keyring-subprocess = "keyring_subprocess._internal:sitecustomize"
 [tool.poetry.plugins."virtualenv.seed"]
 keyring-subprocess = "keyring_subprocess._internal:KeyringSubprocessFromAppData"
 
-
 [tool.poetry.dependencies]
 python = "^3.7"
+sitecustomize-entrypoints = { version = "*", optional = true }
 
+[tool.poetry.extras]
+sitecustomize = ["sitecustomize-entrypoints"]
 
 [tool.vendoring]
 destination = "src/keyring_subprocess/_vendor/"
