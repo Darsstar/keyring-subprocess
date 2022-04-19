@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "keyring-subprocess"
-version = "0.2.0"
+version = "0.0.0" # poetry-dynamic-versioning maintains this
 description = ""
 license = "MIT"
 authors = ["Dos Moonen <darsstar@gmail.com>"]
@@ -19,11 +19,6 @@ keyring-subprocess = "keyring_subprocess._internal:KeyringSubprocessFromAppData"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
 
 
 [tool.vendoring]
@@ -47,3 +42,13 @@ distro = []
 [tool.vendoring.license.directories]
 
 [tool.vendoring.license.fallback-urls]
+
+[tool.poetry-dynamic-versioning]
+enable = true
+
+[tool.poetry-dynamic-versioning.substitution]
+files = ["src/keyring_subprocess/__init__.py"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0b1"]
+build-backend = "poetry.core.masonry.api"
