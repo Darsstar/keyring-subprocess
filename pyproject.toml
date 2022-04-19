@@ -13,6 +13,9 @@ include = ["keyring-subprocess.pth"]
 [tool.poetry.plugins."keyring.backends"]
 keyring-subprocess = "keyring_subprocess.backend:SubprocessBackend"
 
+[tool.poetry.plugins."sitecustomize"]
+keyring-subprocess = "keyring_subprocess._internal:sitecustomize"
+
 [tool.poetry.plugins."virtualenv.seed"]
 keyring-subprocess = "keyring_subprocess._internal:KeyringSubprocessFromAppData"
 

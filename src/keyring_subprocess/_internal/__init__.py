@@ -11,3 +11,7 @@ try:
     from ._seeder import KeyringSubprocessFromAppData
 except ImportError:
     pass
+
+
+def sitecustomize() -> None:
+    pass
