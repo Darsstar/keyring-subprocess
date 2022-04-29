@@ -1,6 +1,13 @@
 # keyring-subprocess
-A zero dependency keyring backend that queries an executable `keyring` which can be
-found on PATH.
+A zero dependency keyring backend for lean virtual environments.
+
+This is achieved by locating a virtual environment which has
+`keyring-subprocess[keyring]` installed whose `keyring-subprocess` can be found
+on the PATH. `keyring-subprocess` is effectively a renamed `keyring`
+executable and serves as a more unique landmark file.
+
+The virtual environment that is found this way should have the actual
+`keyring` backend(s) you need installed into it.
 
 ## Pros
 - Zero dependencies for a clean `pip list` command and to always be
@@ -11,6 +18,8 @@ found on PATH.
   dependencies vendored to make the `chainer` and `null` backends work.
   - It uses the ModuleSpec apis provided by [PEP451](https://peps.python.org/pep-0451/)
     to make the vendored `keyring` importable.
+- Provices an entrypoint named `keyring` that will provide the
+  `keyring-subprocess` executable.
 - Provides a `virtualenv` [Seeder](https://virtualenv.pypa.io/en/latest/user_guide.html#seeders)
   named `keyring-subprocess`.
   - Set `VIRTUALENV_SEEDER` to `keyring-subprocess` or set `seeder` in the
@@ -24,8 +33,8 @@ found on PATH.
       is installed into a `PYTHONPATH` location.
 
 ## Cons
-- It does require `keyring-subprocess` to be installed in the virtual
-  environment associated with the `keyring` executable that is found.
+- It does require `keyring-subprocess[keyring]` to be installed into a virtual
+  environment whose `keyring-subprocess` can be found on the PATH.
 - Adds, or replaces, points of failures. Depending on how you look at it.
 - Being able to import `keyring`, `importlib_metadata` and `zipp` but
   `pip list` not listing them might be confusing and not very helpful during
@@ -36,8 +45,9 @@ found on PATH.
 This is a Powershell script which installs [Pipx](https://pypa.github.io/pipx/)
 into C:\Users\Public\.local\pipx.
 - First it sets some environment variables, including `VIRTUALENV_SEEDER`.
-- Then it installs keyring via Pipx and injects artifacts-keyring into
-keyring's virtual environment.
+- Then it installs keyring-subprocess, with the 'keyring' extra enabled, via
+  Pipx and injects artifacts-keyring into
+the virtual environment of keyring-subprocess.
 - Lastly it installs
 keyring-subprocess and sitecustomize-entrypoints into Pipx's shared virtualenv
 which Pipx makes sure is available to all of the virtual environments it
@@ -78,11 +88,11 @@ if ($EnvironmentVariableTarget -inotin @("User", "Machine")) { `
     $py = $(where.exe py python)[0]; `
     `
     & $py -m venv .venv; `
-    .\.venv\Scripts\Activate.ps1; `
+    . .\.venv\Scripts\Activate.ps1; `
     & $py -m pip install -qqq --no-input --isolated --index https://pypi.org/simple/ pipx; `
     pipx install --pip-args="--no-input --isolated" --index-url https://pypi.org/simple/ pipx; `
-    pipx install --pip-args="--no-input --isolated" --index-url https://pypi.org/simple/ keyring; `
-    pipx inject --pip-args="--no-input --isolated" --index-url https://pypi.org/simple/ keyring artifacts-keyring; `
+    pipx install --pip-args="--no-input --isolated" --index-url https://pypi.org/simple/ keyring-subprocess[keyring]; `
+    pipx inject --pip-args="--no-input --isolated" --index-url https://pypi.org/simple/ keyring-subprocess artifacts-keyring; `
     `
     <# Minor hack since Pipx does not allow us to do this via the cli #> `
     & "$env:PIPX_HOME\shared\Scripts\pip.exe" install --no-input --isolated --index-url https://pypi.org/simple/ keyring-subprocess[sitecustomize]; `

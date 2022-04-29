@@ -10,6 +10,7 @@ from keyring.util import properties
 from keyring.backend import KeyringBackend
 from keyring.backends.chainer import ChainerBackend
 
+EXECUTABLE = "keyring-subprocess"
 SERVICE_NAME = "keyring-subprocess"
 
 
@@ -19,8 +20,8 @@ class SubprocessBackend(KeyringBackend):
     @properties.ClassProperty
     @classmethod
     def priority(cls):
-        if not shutil.which("keyring"):
-            raise RuntimeError("No keyring executable found")
+        if not shutil.which(EXECUTABLE):
+            raise RuntimeError(f"No {EXECUTABLE} executable found")
 
         return 2
 
@@ -37,7 +38,7 @@ class SubprocessBackend(KeyringBackend):
         if self.recursive:
             return self._recursive_get_password(service, username)
 
-        executable = shutil.which("keyring")
+        executable = shutil.which(EXECUTABLE)
         if executable is None:
             return None
 
@@ -62,7 +63,7 @@ class SubprocessBackend(KeyringBackend):
         if self.recursive:
             return None
 
-        executable = shutil.which("keyring")
+        executable = shutil.which(EXECUTABLE)
         if not self.recursive and executable is None:
             return None
 
@@ -125,7 +126,7 @@ class SubprocessBackend(KeyringBackend):
         if self.recursive:
             return self._recursive_set_password(service, username, password)
 
-        executable = shutil.which("keyring")
+        executable = shutil.which(EXECUTABLE)
         if not self.recursive and executable is None:
             return None
 
@@ -155,7 +156,7 @@ class SubprocessBackend(KeyringBackend):
         if self.recursive:
             return self._recursive_delete_password(service, username)
 
-        executable = shutil.which("keyring")
+        executable = shutil.which(EXECUTABLE)
         if not self.recursive and executable is None:
             return None
 
