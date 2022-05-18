@@ -21,7 +21,7 @@ def vendoring(session) -> None:
 @nox.session
 def keyring(session: nox.Session) -> None:
     session.install("artifacts-keyring")
-    session.install(".[keyring]")
+    session.install(".[landmark]")
 
 
 @nox.session

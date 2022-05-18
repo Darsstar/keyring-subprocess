@@ -5,7 +5,7 @@
     <option name="PARENT_ENVS" value="true" />
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
-      <env name="KEYRING_PROPERTY_RECURSIVE" value="1" />
+      <env name="KEYRING_SUBPROCESS_RECURSIVE" value="1" />
     </envs>
     <option name="SDK_HOME" value="D:\Projects\keyring-subprocess\.nox\keyring\Scripts\python.exe" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />

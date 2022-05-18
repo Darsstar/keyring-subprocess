@@ -12,6 +12,7 @@ from keyring.backends.chainer import ChainerBackend
 
 EXECUTABLE = "keyring-subprocess"
 SERVICE_NAME = "keyring-subprocess"
+ENV_VAR_RECURSIVE = "KEYRING_SUBPROCESS_RECURSIVE"
 
 
 class SubprocessBackend(KeyringBackend):
@@ -23,11 +24,16 @@ class SubprocessBackend(KeyringBackend):
         if not shutil.which(EXECUTABLE):
             raise RuntimeError(f"No {EXECUTABLE} executable found")
 
-        return 2
+        return 9
+
+    @properties.ClassProperty
+    @classmethod
+    def recursive(cls):
+        return bool(os.getenv(ENV_VAR_RECURSIVE))
 
     def _env(self):
         env = os.environ.copy()
-        env["KEYRING_PROPERTY_RECURSIVE"] = "1"
+        env[ENV_VAR_RECURSIVE] = "1"
         env[
             "PYTHON_KEYRING_BACKEND"
         ] = f"{self.__class__.__module__}.{self.__class__.__name__}"

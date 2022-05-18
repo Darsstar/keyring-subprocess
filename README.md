@@ -43,7 +43,7 @@ The virtual environment that is found this way should have the actual
 # Example on Windows
 
 This is a Powershell script which installs [Pipx](https://pypa.github.io/pipx/)
-into C:\Users\Public\.local\pipx.
+into `C:\Users\Public\.local\pipx`.
 - First it sets some environment variables, including `VIRTUALENV_SEEDER`.
 - Then it installs keyring via Pipx and injects artifacts-keyring and
   keyring-subprocess[landmark] into the virtual environment of keyring.
@@ -112,6 +112,6 @@ if ($EnvironmentVariableTarget -inotin @("User", "Machine")) { `
     if ($ExecutionPolicy) { `
       Set-ExecutionPolicy -ExecutionPolicy $ExecutionPolicy -Scope Process; `
     } `
-  }
+  } `
 }
 ```
