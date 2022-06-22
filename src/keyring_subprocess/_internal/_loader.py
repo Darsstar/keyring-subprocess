@@ -1,5 +1,6 @@
 import importlib.abc
 import os
+import sys
 import types
 from importlib.machinery import ModuleSpec
 from pathlib import Path
@@ -14,7 +15,7 @@ class KeyringSubprocessFinder(importlib.abc.MetaPathFinder):
         return Path(__file__).parent.parent / "_vendor"
 
     def __init__(self, *args, **kwargs):
-        self._keyring_loaded = False
+        self._load_vendored_deps = False
         super().__init__(*args, **kwargs)
 
     def find_spec(
@@ -34,8 +35,10 @@ class KeyringSubprocessFinder(importlib.abc.MetaPathFinder):
         return spec
 
     def location(self, segments: List[str]) -> Optional[Path]:
-        if segments[0] == "keyring" or self._keyring_loaded:
-            self._keyring_loaded = True
+        if segments[0] == "keyring":
+            self._load_vendored_deps = sys.version_info < (3, 10)
+        elif self._load_vendored_deps:
+            pass
         else:
             return None
 
