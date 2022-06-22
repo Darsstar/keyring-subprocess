@@ -13,6 +13,10 @@ class KeyringSubprocessFinder(importlib.abc.MetaPathFinder):
     def path():
         return Path(__file__).parent.parent / "_vendor"
 
+    def __init__(self, *args, **kwargs):
+        self._keyring_loaded = False
+        super().__init__(*args, **kwargs)
+
     def find_spec(
         self,
         fullname: str,
@@ -30,6 +34,11 @@ class KeyringSubprocessFinder(importlib.abc.MetaPathFinder):
         return spec
 
     def location(self, segments: List[str]) -> Optional[Path]:
+        if segments[0] == "keyring" or self._keyring_loaded:
+            self._keyring_loaded = True
+        else:
+            return None
+
         segments, files = (
             segments[:-1],
             [
@@ -38,6 +47,7 @@ class KeyringSubprocessFinder(importlib.abc.MetaPathFinder):
             ],
         )
         location = self.path()
+
         for segment in segments:
             location = location / segment
             if not location.exists():
