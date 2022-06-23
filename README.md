@@ -90,27 +90,34 @@ if ($EnvironmentVariableTarget -inotin @("User", "Machine")) { `
     `
     & $py -m venv .venv; `
     `
-    Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process; `
+    Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force; `
     . .\.venv\Scripts\Activate.ps1; `
     `
     & $py -m pip install -qqq --no-input --isolated pipx; `
     pipx install --pip-args="--no-input --isolated" pipx; `
     pipx install --pip-args="--no-input --isolated" keyring; `
     pipx inject --pip-args="--no-input --isolated" keyring artifacts-keyring; `
-    pipx inject --include-apps --include-deps --pip-args="--no-input --isolated" keyring keyring-subprocess[landmark]; `
+    pipx inject --pip-args="--no-input --isolated" --include-apps --include-deps keyring keyring-subprocess[landmark]; `
+    pipx install --pip-args="--no-input --isolated" virtualenv; `
     `
     <# Minor hack since Pipx does not allow us to do this via the cli #> `
     & "$env:PIPX_HOME\shared\Scripts\pip.exe" install --no-input --isolated keyring-subprocess[sitecustomize]; `
     `
     deactivate; `
-    Remove-Item -path .\.venv -Recurse -Force `
+    Remove-Item -path .\.venv -Recurse -Force; `
+    `
+    <# Fill virtualenv's wheel cache with keyring-subprocess #> `
+    <# I might take a stab at making keyring-subprocess a Quine at some point... #> `
+    virtualenv --upgrade-embed-wheels --seeder keyring-subprocess .venv; `
+    Remove-Item -path .\.venv -Recurse -Force; `
+    `
   } catch { `
     throw "Run as Administrator or choose `"User`" as the target environment" `
   } finally { `
     $env:PIP_NO_INPUT = $PIP_NO_INPUT; `
     $env:PIP_INDEX_URL = $PIP_INDEX_URL; `
     if ($ExecutionPolicy) { `
-      Set-ExecutionPolicy -ExecutionPolicy $ExecutionPolicy -Scope Process; `
+      Set-ExecutionPolicy -ExecutionPolicy $ExecutionPolicy -Scope Process -Force; `
     } `
   } `
 }
