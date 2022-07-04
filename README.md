@@ -106,9 +106,10 @@ if ($EnvironmentVariableTarget -inotin @("User", "Machine")) { `
     deactivate; `
     Remove-Item -path .\.venv -Recurse -Force; `
     `
-    <# Fill virtualenv's wheel cache with keyring-subprocess #> `
+    <# Fill virtualenv's wheel cache with keyring-subprocess and up-to-date versions of the embeded wheels #> `
     <# I might take a stab at making keyring-subprocess a Quine at some point... #> `
-    virtualenv --upgrade-embed-wheels --seeder keyring-subprocess .venv; `
+    virtualenv --upgrade-embed-wheels; `
+    virtualenv --seeder keyring-subprocess --download .venv; `
     Remove-Item -path .\.venv -Recurse -Force; `
     `
   } catch { `
