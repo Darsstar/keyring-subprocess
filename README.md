@@ -70,10 +70,16 @@ if ($EnvironmentVariableTarget -inotin @("User", "Machine")) { `
   Write-Host "Invalid option."; `
 } else { `
   try { `
-    [Environment]::SetEnvironmentVariable("PIPX_HOME", "C:\Users\Public\.local\pipx", $EnvironmentVariableTarget); `
-    [Environment]::SetEnvironmentVariable("PIPX_BIN_DIR", "C:\Users\Public\.local\bin", $EnvironmentVariableTarget); `
-    [Environment]::SetEnvironmentVariable("VIRTUALENV_SEEDER", "keyring-subprocess", $EnvironmentVariableTarget); `
-    [Environment]::SetEnvironmentVariable("Path", "C:\Users\Public\.local\bin;" + [Environment]::GetEnvironmentVariable("Path", $EnvironmentVariableTarget), $EnvironmentVariableTarget); `
+    try { `
+       [Environment]::SetEnvironmentVariable("PIPX_HOME", "C:\Users\Public\.local\pipx", $EnvironmentVariableTarget); `
+       [Environment]::SetEnvironmentVariable("PIPX_BIN_DIR", "C:\Users\Public\.local\bin", $EnvironmentVariableTarget); `
+       [Environment]::SetEnvironmentVariable("VIRTUALENV_SEEDER", "keyring-subprocess", $EnvironmentVariableTarget); `
+       [Environment]::SetEnvironmentVariable("Path", "C:\Users\Public\.local\bin;" + [Environment]::GetEnvironmentVariable("Path", $EnvironmentVariableTarget), $EnvironmentVariableTarget); `
+    } catch { `
+      throw "Run as Administrator or choose `"User`" as the target environment" `
+    }; `
+    `
+    $PATH = $env:PATH; `
     $PIP_NO_INPUT = $env:PIP_NO_INPUT; `
     $PIP_INDEX_URL = $env:PIP_INDEX_URL; `
     $ExecutionPolicy = Get-ExecutionPolicy; `
@@ -81,19 +87,20 @@ if ($EnvironmentVariableTarget -inotin @("User", "Machine")) { `
     $env:PIP_INDEX_URL = 'https://pypi.org/simple/'; `
     $env:PIPX_HOME = [Environment]::GetEnvironmentVariable("PIPX_HOME", $EnvironmentVariableTarget); `
     $env:PIPX_BIN_DIR = [Environment]::GetEnvironmentVariable("PIPX_BIN_DIR", $EnvironmentVariableTarget); `
-    $env:PATH = "C:\Users\Public\.local\bin;"+$env:PATH; `
+    $env:PATH = $PATH = "C:\Users\Public\.local\bin;"+$env:PATH; `
     Set-Location (Get-Item $env:TEMP).FullName; `
     `
     <# Use the py executable if it can be found and default to the python executable #> 
     `
     $py = $(where.exe py python)[0]; `
+    $env:PATH = $(& "$py" -c "import sys; import sysconfig; import os; from pathlib import Path; from itertools import chain; print(os.pathsep.join(chain(set([str(Path(sys.executable).parent), sysconfig.get_path(`"`"scripts`"`")]), [os.environ[`"`"PATH`"`"]])))"); `
     `
-    & $py -m venv .venv; `
+    & "$py" -m venv .venv; `
     `
     Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force; `
     . .\.venv\Scripts\Activate.ps1; `
     `
-    & $py -m pip install -qqq --no-input --isolated pipx; `
+    & "$py" -m pip install -qqq --no-input --isolated pipx; `
     pipx install --pip-args="--no-input --isolated" pipx; `
     pipx install --pip-args="--no-input --isolated" keyring; `
     pipx inject --pip-args="--no-input --isolated" keyring artifacts-keyring; `
@@ -112,9 +119,8 @@ if ($EnvironmentVariableTarget -inotin @("User", "Machine")) { `
     virtualenv --seeder keyring-subprocess --download .venv; `
     Remove-Item -path .\.venv -Recurse -Force; `
     `
-  } catch { `
-    throw "Run as Administrator or choose `"User`" as the target environment" `
   } finally { `
+    $env:PATH = $PATH; `
     $env:PIP_NO_INPUT = $PIP_NO_INPUT; `
     $env:PIP_INDEX_URL = $PIP_INDEX_URL; `
     if ($ExecutionPolicy) { `
