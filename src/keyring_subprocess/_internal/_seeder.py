@@ -1,10 +1,33 @@
 """Extensions for virtualenv Seeders to pre-install keyring-subprocess."""
+import functools
 import re
 import abc
-from virtualenv.seed.wheels import Version
+from functools import update_wrapper
+from pathlib import Path
+
+import virtualenv.seed.wheels.embed
+import virtualenv.seed.wheels.bundle
+from virtualenv.seed.wheels import Version, Wheel
 from virtualenv.seed.embed.via_app_data.via_app_data import FromAppData
 
-VERSION = Version.bundle
+BUNDLE_SUPPORT = {
+    "3.11": {
+        "keyring-subprocess": "keyring_subprocess-0.6.0-py3-none-any.whl",
+    },
+    "3.10": {
+        "keyring-subprocess": "keyring_subprocess-0.6.0-py3-none-any.whl",
+    },
+    "3.9": {
+        "keyring-subprocess": "keyring_subprocess-0.6.0-py3-none-any.whl",
+    },
+    "3.8": {
+        "keyring-subprocess": "keyring_subprocess-0.6.0-py3-none-any.whl",
+    },
+    "3.7": {
+        "keyring-subprocess": "keyring_subprocess-0.6.0-py3-none-any.whl",
+    },
+}
+MAX = "3.11"
 
 
 def pep503(name):
@@ -15,17 +38,36 @@ def normalize(name):
     return pep503(name).replace("-", "_")
 
 
-def _get_embed_wheel(distribution, for_py_version):
-    from virtualenv.seed.wheels.embed import BUNDLE_SUPPORT, BUNDLE_FOLDER, MAX
-    from virtualenv.seed.wheels.util import Wheel
+def _get_embed_wheel(wrapped, distribution: str, for_py_version: str, *args, **kwargs):
+    if normalize(distribution) == normalize("keyring-subprocess"):
+        wheel = (
+            virtualenv.seed.wheels.embed.BUNDLE_SUPPORT.get(for_py_version, {})
+            or virtualenv.seed.wheels.embed.BUNDLE_SUPPORT[MAX]
+        ).get("keyring-subprocess")
 
-    wheels = BUNDLE_SUPPORT.get(for_py_version, {}) or BUNDLE_SUPPORT[MAX]
-    wheel = wheels.get(distribution)
+        wheel = None if wheel is None else Path(__file__).parent / "wheels" / wheel
+        wheel = None if wheel is None or not wheel.exists() else wheel
 
-    if wheel is None:
-        return None
+        return Wheel.from_path(wheel)
+    else:
+        return wrapped(distribution, for_py_version, *args, **kwargs)
 
-    return Wheel.from_path(BUNDLE_FOLDER / wheel)
+
+_get_embed_wheel = functools.partial(
+    _get_embed_wheel, virtualenv.seed.wheels.embed.get_embed_wheel
+)
+update_wrapper(_get_embed_wheel, virtualenv.seed.wheels.embed.get_embed_wheel)
+virtualenv.seed.wheels.bundle.get_embed_wheel = _get_embed_wheel
+
+for (
+    for_py_version,
+    distribution_to_package,
+) in virtualenv.seed.wheels.embed.BUNDLE_SUPPORT.items():
+    version = tuple(map(int, for_py_version.split(".")))
+    if version >= (3, 7):
+        distribution_to_package["keyring-subprocess"] = (
+            BUNDLE_SUPPORT.get(for_py_version, {}) or BUNDLE_SUPPORT[MAX]
+        ).get("keyring-subprocess")
 
 
 class ParserWrapper:
@@ -72,10 +114,6 @@ class KeyringSubprocessFromAppData(FromAppData, metaclass=MetaClass):
 
         super(KeyringSubprocessFromAppData, self).__init__(options)
 
-        import virtualenv.seed.wheels.bundle as bundle
-
-        bundle.get_embed_wheel = _get_embed_wheel
-
     @classmethod
     def add_parser_arguments(cls, parser, interpreter, app_data):
         parser = ParserWrapper(parser)
@@ -88,7 +126,7 @@ class KeyringSubprocessFromAppData(FromAppData, metaclass=MetaClass):
     def distributions(cls):
         """Return the dictionary of distributions."""
         distributions = super(KeyringSubprocessFromAppData, cls).distributions()
-        distributions["keyring-subprocess"] = VERSION
+        distributions["keyring-subprocess"] = Version.bundle
 
         if cls.normalize:
             distributions = {
