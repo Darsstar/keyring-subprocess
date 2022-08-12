@@ -59,7 +59,7 @@ succeed!
 Assuming of couse that your private repository requires artifacts-keyring to
 authenticate, and is therefor a Azure DevOps Artifact Feed. If this is not the
 case this should be easily fixed by replacing artifacts-keyring by the
-package that provides the keyring backend that you actually need. 
+package that provides the keyring backend that you actually need.
 
 ```powershell
 $EnvironmentVariableTarget = $(Read-Host "Target environment (User/Machine) [Machine]").Trim(); `
@@ -70,27 +70,40 @@ if ($EnvironmentVariableTarget -inotin @("User", "Machine")) { `
   Write-Host "Invalid option."; `
 } else { `
   try { `
-    try { `
-       [Environment]::SetEnvironmentVariable("PIPX_HOME", "C:\Users\Public\.local\pipx", $EnvironmentVariableTarget); `
-       [Environment]::SetEnvironmentVariable("PIPX_BIN_DIR", "C:\Users\Public\.local\bin", $EnvironmentVariableTarget); `
-       [Environment]::SetEnvironmentVariable("VIRTUALENV_SEEDER", "keyring-subprocess", $EnvironmentVariableTarget); `
-       [Environment]::SetEnvironmentVariable("Path", "C:\Users\Public\.local\bin;" + [Environment]::GetEnvironmentVariable("Path", $EnvironmentVariableTarget), $EnvironmentVariableTarget); `
-    } catch { `
-      throw "Run as Administrator or choose `"User`" as the target environment" `
-    }; `
-    `
     $PATH = $env:PATH; `
     $PIP_NO_INPUT = $env:PIP_NO_INPUT; `
     $PIP_INDEX_URL = $env:PIP_INDEX_URL; `
     $ExecutionPolicy = Get-ExecutionPolicy; `
-    $env:PIP_NO_INPUT = '1'; `
-    $env:PIP_INDEX_URL = 'https://pypi.org/simple/'; `
-    $env:PIPX_HOME = [Environment]::GetEnvironmentVariable("PIPX_HOME", $EnvironmentVariableTarget); `
-    $env:PIPX_BIN_DIR = [Environment]::GetEnvironmentVariable("PIPX_BIN_DIR", $EnvironmentVariableTarget); `
-    $env:PATH = $PATH = "C:\Users\Public\.local\bin;"+$env:PATH; `
+    `
+    try { `
+       if (!$env:PIPX_HOME) { `
+         [Environment]::SetEnvironmentVariable("PIPX_HOME", "C:\Users\Public\.local\pipx", $EnvironmentVariableTarget); `
+         $env:PIPX_HOME = [Environment]::GetEnvironmentVariable("PIPX_HOME", $EnvironmentVariableTarget); `
+       }; `
+       if (!$env:PIPX_BIN_DIR) { `
+         [Environment]::SetEnvironmentVariable("PIPX_BIN_DIR", "C:\Users\Public\.local\bin", $EnvironmentVariableTarget); `
+         $env:PIPX_BIN_DIR = [Environment]::GetEnvironmentVariable("PIPX_BIN_DIR", $EnvironmentVariableTarget); `
+       }; `
+       if (!$env:VIRTUALENV_SEEDER) { `
+         [Environment]::SetEnvironmentVariable("VIRTUALENV_SEEDER", "keyring-subprocess", $EnvironmentVariableTarget); `
+         $env:VIRTUALENV_SEEDER = [Environment]::GetEnvironmentVariable("VIRTUALENV_SEEDER", $EnvironmentVariableTarget); `
+       }; `
+       `
+       where.exe pipx > $null; `
+       if (-not $?) { `
+         [Environment]::SetEnvironmentVariable("Path", "C:\Users\Public\.local\bin;" + [Environment]::GetEnvironmentVariable("Path", $EnvironmentVariableTarget), $EnvironmentVariableTarget); `
+         $env:PATH = $PATH = "C:\Users\Public\.local\bin;"+$env:PATH; `
+       }; `
+       `
+       $env:PIP_NO_INPUT = '1'; `
+       $env:PIP_INDEX_URL = 'https://pypi.org/simple/'; `
+    } catch { `
+      throw "Run as Administrator or choose `"User`" as the target environment" `
+    }; `
+    `
     Set-Location (Get-Item $env:TEMP).FullName; `
     `
-    <# Use the py executable if it can be found and default to the python executable #> 
+    <# Use the py executable if it can be found and default to the python executable #>
     `
     $py = $(where.exe py python)[0]; `
     $env:PATH = $(& "$py" -c "import sys; import sysconfig; import os; from pathlib import Path; from itertools import chain; print(os.pathsep.join(chain(set([str(Path(sys.executable).parent), sysconfig.get_path(`"`"scripts`"`")]), [os.environ[`"`"PATH`"`"]])))"); `
