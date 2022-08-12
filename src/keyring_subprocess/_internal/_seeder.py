@@ -138,8 +138,12 @@ class KeyringSubprocessFromAppData(FromAppData, metaclass=MetaClass):
 
     def distribution_to_versions(self):
         with Normalize():
-            return super(KeyringSubprocessFromAppData, self).distribution_to_versions()
+            return super().distribution_to_versions()
 
-    def __unicode__(self):
+    def __str__(self):
         with Normalize():
-            return super(KeyringSubprocessFromAppData, self).__unicode__()
+            return super().__str__()
+
+    def __repr__(self):
+        with Normalize():
+            return super().__repr__()
