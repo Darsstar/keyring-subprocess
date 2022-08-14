@@ -12,19 +12,19 @@ from virtualenv.seed.embed.via_app_data.via_app_data import FromAppData
 
 BUNDLE_SUPPORT = {
     "3.11": {
-        "keyring-subprocess": "keyring_subprocess-0.8.0-py3-none-any.whl",
+        "keyring-subprocess": "keyring_subprocess-0.9.0-py3-none-any.whl",
     },
     "3.10": {
-        "keyring-subprocess": "keyring_subprocess-0.8.0-py3-none-any.whl",
+        "keyring-subprocess": "keyring_subprocess-0.9.0-py3-none-any.whl",
     },
     "3.9": {
-        "keyring-subprocess": "keyring_subprocess-0.8.0-py3-none-any.whl",
+        "keyring-subprocess": "keyring_subprocess-0.9.0-py3-none-any.whl",
     },
     "3.8": {
-        "keyring-subprocess": "keyring_subprocess-0.8.0-py3-none-any.whl",
+        "keyring-subprocess": "keyring_subprocess-0.9.0-py3-none-any.whl",
     },
     "3.7": {
-        "keyring-subprocess": "keyring_subprocess-0.8.0-py3-none-any.whl",
+        "keyring-subprocess": "keyring_subprocess-0.9.0-py3-none-any.whl",
     },
 }
 MAX = "3.11"
