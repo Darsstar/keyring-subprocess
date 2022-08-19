@@ -39,7 +39,7 @@ protected-files = ["__init__.py", "README.rst", "vendor.txt"]
 drop = [
   # contains unnecessary scripts
   "bin/",
-  "zipp.pyi",
+  "keyring/testing/",
 ]
 
 [tool.vendoring.typing-stubs]
