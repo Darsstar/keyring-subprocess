@@ -15,4 +15,4 @@ assert end_of_central_directory_record_offset != -1, "End of central directory r
 print(f"{end_of_central_directory_record_offset=}/{len(wheel_bytes)}")
 
 end_of_central_directory_record = EndOfCentralDirectoryRecord(wheel_bytes, end_of_central_directory_record_offset)
-print(end_of_central_directory_record._ZIP_file_comment_length)
+print(end_of_central_directory_record._comment_length)

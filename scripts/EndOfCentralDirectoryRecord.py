@@ -6,23 +6,22 @@ class EndOfCentralDirectoryRecord:
     """
     def __init__(self, file: bytes, offset: int):
         buf = bytes(file[offset:])
-        self._signature = buf[0:4]
-        self._number_of_this_disk = buf[4:6]
-        self._number_of_the_disk_with_the_start_of_the_central_directory = buf[6:8]
-        self._total_number_of_entries_in_the_central_directory_on_this_disk = buf[8:10]
-        self._total_number_of_entries_in_the_central_directory = buf[10:12]
-        self._size_of_the_central_directory = buf[12:16]
-        self._offset_of_start_of_central_directory_with_respect_to_the_starting_disk_number = buf[16:20]
-        self._ZIP_file_comment_length = buf[20:22]
-        self._ZIP_file_comment = buf[22:]
+        self._signature = int.from_bytes(buf[0:4], byteorder="little")
+        self._disk_number = int.from_bytes(buf[4:6], byteorder="little")
+        self._disk_containing_CDR = int.from_bytes(buf[6:8], byteorder="little")
+        self._CDR_entries_on_disk = int.from_bytes(buf[8:10], byteorder="little")
+        self._CDR_entries_on_all_disks = int.from_bytes(buf[10:12], byteorder="little")
+        self._CDR_size = int.from_bytes(buf[12:16], byteorder="little")
+        self._CDR_offset = int.from_bytes(buf[16:20], byteorder="little")
+        self._comment_length = int.from_bytes(buf[20:22], byteorder="little")
+        self._comment = buf[22:]
 
-        comment_length = int.from_bytes(self._ZIP_file_comment_length, byteorder="little")
-        assert comment_length == len(self._ZIP_file_comment)
-
-        size_of_central_directory = int.from_bytes(self._size_of_the_central_directory, byteorder="little")
-        central_directory_offset = int.from_bytes(self._offset_of_start_of_central_directory_with_respect_to_the_starting_disk_number,
-                                    byteorder="little")
-        assert size_of_central_directory == len(file[central_directory_offset:offset])
+        assert self._signature == 0x06054b50
+        assert self._comment_length == len(self._comment)
+        assert self._CDR_size == len(file[self._CDR_offset:offset])
+        assert self._disk_number == 0, "Cannot handle split archive"
+        assert self._disk_containing_CDR == 0, "Cannot handle split archive"
+        assert self._CDR_entries_on_disk == self._CDR_entries_on_all_disks, "Cannot handle split archive"
 
     # def __repr__(self):
     #     return (
