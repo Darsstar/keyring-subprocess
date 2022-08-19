@@ -1,4 +1,5 @@
-
+from CentralDirectoryHeader import CentralDirectoryHeader
+from typing import Generator
 
 class EndOfCentralDirectoryRecord:
     """
@@ -22,6 +23,12 @@ class EndOfCentralDirectoryRecord:
         assert self._disk_number == 0, "Cannot handle split archive"
         assert self._disk_containing_CDR == 0, "Cannot handle split archive"
         assert self._CDR_entries_on_disk == self._CDR_entries_on_all_disks, "Cannot handle split archive"
+
+    def iter(self, file: bytes) -> Generator[CentralDirectoryHeader, None, None]:
+        offset = self._CDR_offset
+        for i in range(0, self._CDR_entries_on_all_disks):
+            header, offset = CentralDirectoryHeader.parse(file, offset)
+            yield header
 
     # def __repr__(self):
     #     return (
