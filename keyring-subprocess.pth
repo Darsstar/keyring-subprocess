@@ -1,1 +1,1 @@
-import keyring_subprocess._internal;
+import keyring_subprocess._internal; keyring_subprocess._internal.sitecustomize()

@@ -34,9 +34,6 @@ class SubprocessBackend(KeyringBackend):
     def _env(self):
         env = os.environ.copy()
         env[ENV_VAR_RECURSIVE] = "1"
-        env[
-            "PYTHON_KEYRING_BACKEND"
-        ] = f"{self.__class__.__module__}.{self.__class__.__name__}"
 
         return env
 
@@ -106,7 +103,7 @@ class SubprocessBackend(KeyringBackend):
         result = subprocess.run(
             [executable, operation, SERVICE_NAME, payload],
             env=self._env(),
-            capture_output=True,
+            stdout=subprocess.PIPE,
             encoding="utf-8",
         )
         return result
