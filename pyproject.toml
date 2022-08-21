@@ -8,7 +8,7 @@ readme = "README.md"
 homepage = "https://keyring-subprocess.darsstar.dev/"
 repository = "https://github.com/Darsstar/keyring-subprocess"
 packages = [{include = "keyring_subprocess", from = "src"}]
-include = ["keyring-subprocess.pth"]
+include = ["keyring-subprocess.pth", "keyring_subprocess.LICENSE"]
 
 [tool.poetry.plugins."keyring.backends"]
 keyring-subprocess = "keyring_subprocess.backend:SubprocessBackend"
