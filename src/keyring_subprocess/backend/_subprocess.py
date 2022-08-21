@@ -106,7 +106,7 @@ class SubprocessBackend(KeyringBackend):
         result = subprocess.run(
             [executable, operation, SERVICE_NAME, payload],
             env=self._env(),
-            capture_output=True,
+            stdout=subprocess.PIPE,
             encoding="utf-8",
         )
         return result
