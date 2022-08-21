@@ -77,30 +77,43 @@ if ($EnvironmentVariableTarget -inotin @("User", "Machine")) { `
     `
     try { `
       if (!$env:PIPX_HOME) { `
+        $env:PIPX_HOME = [Environment]::GetEnvironmentVariable("PIPX_HOME", $EnvironmentVariableTarget); `
+      }; `
+      if (!$env:PIPX_HOME) { `
         [Environment]::SetEnvironmentVariable("PIPX_HOME", "C:\Users\Public\.local\pipx", $EnvironmentVariableTarget); `
         $env:PIPX_HOME = [Environment]::GetEnvironmentVariable("PIPX_HOME", $EnvironmentVariableTarget); `
+      }; `
+      `
+      if (!$env:PIPX_BIN_DIR) { `
+        $env:PIPX_BIN_DIR = [Environment]::GetEnvironmentVariable("PIPX_BIN_DIR", $EnvironmentVariableTarget); `
       }; `
       if (!$env:PIPX_BIN_DIR) { `
         [Environment]::SetEnvironmentVariable("PIPX_BIN_DIR", "C:\Users\Public\.local\bin", $EnvironmentVariableTarget); `
         $env:PIPX_BIN_DIR = [Environment]::GetEnvironmentVariable("PIPX_BIN_DIR", $EnvironmentVariableTarget); `
+      }; `
+     `
+      if (!$env:VIRTUALENV_SEEDER) { `
+        $env:VIRTUALENV_SEEDER = [Environment]::GetEnvironmentVariable("VIRTUALENV_SEEDER", $EnvironmentVariableTarget); `
       }; `
       if (!$env:VIRTUALENV_SEEDER) { `
         [Environment]::SetEnvironmentVariable("VIRTUALENV_SEEDER", "keyring-subprocess", $EnvironmentVariableTarget); `
         $env:VIRTUALENV_SEEDER = [Environment]::GetEnvironmentVariable("VIRTUALENV_SEEDER", $EnvironmentVariableTarget); `
       }; `
       `
-      if (Test-Path "C:\Users\Public\.local\bin\pipx.exe") {`
-        $pipx = $(Get-Command pipx); `
-        if ($pipx) { `
-          return
-        }; `
+      if (Test-Path "C:\Users\Public\.local\bin\pipx.exe") { `
+        try { `
+          $env:PATH = [Environment]::GetEnvironmentVariable("PATH", $EnvironmentVariableTarget); `
+          `
+          $pipx = $(Get-Command pipx 2>$null); `
+        } catch { `
+        } finally { `
+          $env:PATH = $PATH `
+        } `
         `
-        $env:PATH = "C:\Users\Public\.local\bin;"+$env:PATH; `
-        `
-        $pipx = $(Get-Command pipx); `
-        if ($pipx) { `
-          return
+        if (-not $pipx) { `
+          $env:PATH = $PATH = "C:\Users\Public\.local\bin;"+$env:PATH; `
         }; `
+        return `
       }; `
       `
       [Environment]::SetEnvironmentVariable("Path", "C:\Users\Public\.local\bin;" + [Environment]::GetEnvironmentVariable("Path", $EnvironmentVariableTarget), $EnvironmentVariableTarget); `
@@ -114,7 +127,7 @@ if ($EnvironmentVariableTarget -inotin @("User", "Machine")) { `
     `
     Set-Location (Get-Item $env:TEMP).FullName; `
     `
-    <# Use the py executable if it can be found and default to the python executable #>
+    <# Use the py executable if it can be found and default to the python executable #> `
     `
     $py = $(Get-Command py, python)[0]; `
     $env:PATH = $(& $py -c "import sys; import sysconfig; import os; from pathlib import Path; from itertools import chain; print(os.pathsep.join(chain(set([str(Path(sys.executable).parent), sysconfig.get_path(`"`"scripts`"`")]), [os.environ[`"`"PATH`"`"]])))"); `
@@ -139,11 +152,14 @@ if ($EnvironmentVariableTarget -inotin @("User", "Machine")) { `
     `
     <# Fill virtualenv's wheel cache with keyring-subprocess and up-to-date versions of the embeded wheels #> `
     <# I might take a stab at making keyring-subprocess a Quine at some point... #> `
+    <# Update: I started and figured out that the size of the vendored dependencies are a problem #> `
+    <# DEFLATE uses a 32KiB sliding window so the size of the .whl before making it a quine should definately be below 64KiB #> `
+    <# Maybe I can get Pip to vendor keyring and keyring-subprocess? #> `
     virtualenv --upgrade-embed-wheels; `
     virtualenv --seeder keyring-subprocess --download .venv; `
     Remove-Item -path .\.venv -Recurse -Force; `
     `
-  } catch {`
+  } catch { `
     $Error; `
     $env:PATH = $PATH; `
   } finally { `
