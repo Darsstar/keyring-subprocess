@@ -1,6 +1,6 @@
 def sitecustomize() -> None:
     import sys
-    from ._loader import KeyringSubprocessFinder
+    from .loader import KeyringSubprocessFinder
 
     sys.meta_path.append(KeyringSubprocessFinder())
 
@@ -12,6 +12,6 @@ def sitecustomize() -> None:
         vendored_virtualenv = vendor_prefix_parts + ["virtualenv"]
         vendored_virtualenv = ".".join(vendored_virtualenv)
         import_module(vendored_virtualenv)
-        from ._seeder import KeyringSubprocessFromAppData
+        from .seeder import KeyringSubprocessFromAppData
     except ImportError:
         pass

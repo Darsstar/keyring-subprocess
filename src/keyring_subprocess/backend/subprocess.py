@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import sys
 import shutil
 import subprocess
 from typing import Optional
@@ -24,7 +25,23 @@ class SubprocessBackend(KeyringBackend):
         if not shutil.which(EXECUTABLE):
             raise RuntimeError(f"No {EXECUTABLE} executable found")
 
-        return 9
+        if sys.version_info > (3, 10):
+            from importlib import metadata
+        else:
+            import importlib_metadata as metadata
+
+        if any(metadata.distributions(name="keyring_subprocess_landmark")):
+            version = tuple(
+                int(digit)
+                for digit in metadata.version("keyring_subprocess_landmark").split(".")
+            )
+            if version >= (0, 3, 0):
+                raise RuntimeError(
+                    "keyring-subprocess-landmark 0.3.0 and up no longer require"
+                    " the backend to be viable for the chainer backend"
+                )
+
+        return 100
 
     @properties.ClassProperty
     @classmethod
@@ -34,9 +51,6 @@ class SubprocessBackend(KeyringBackend):
     def _env(self):
         env = os.environ.copy()
         env[ENV_VAR_RECURSIVE] = "1"
-        env[
-            "PYTHON_KEYRING_BACKEND"
-        ] = f"{self.__class__.__module__}.{self.__class__.__name__}"
 
         return env
 
@@ -149,8 +163,9 @@ class SubprocessBackend(KeyringBackend):
             )
 
     def _recursive_set_password(self, service: str, username: str) -> Optional[str]:
-        if not self.recursive or service != SERVICE_NAME:
-            return None
+        assert self.recursive, "Please don't call this internal method directly"
+        if service != SERVICE_NAME:
+            raise NotImplementedError()
 
         params = json.loads(base64.b64decode(username))
 
@@ -178,8 +193,9 @@ class SubprocessBackend(KeyringBackend):
             )
 
     def _recursive_delete_password(self, service: str, username: str) -> Optional[str]:
-        if not self.recursive or service != SERVICE_NAME:
-            return None
+        assert self.recursive, "Please don't call this internal method directly"
+        if service != SERVICE_NAME:
+            raise NotImplementedError()
 
         params = json.loads(base64.b64decode(username))
 

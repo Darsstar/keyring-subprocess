@@ -17,7 +17,7 @@ keyring-subprocess = "keyring_subprocess.backend:SubprocessBackend"
 keyring-subprocess = "keyring_subprocess._internal:sitecustomize"
 
 [tool.poetry.plugins."virtualenv.seed"]
-keyring-subprocess = "keyring_subprocess._internal:KeyringSubprocessFromAppData"
+keyring-subprocess = "keyring_subprocess._internal.seeder:KeyringSubprocessFromAppData"
 
 [tool.poetry.dependencies]
 python = "^3.7"
