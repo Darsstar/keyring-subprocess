@@ -63,111 +63,116 @@ package that provides the keyring backend that you actually need.
 
 ```powershell
 $EnvironmentVariableTarget = $(Read-Host "Target environment (User/Machine) [Machine]").Trim(); `
-if ($EnvironmentVariableTarget -eq "") { `
-  $EnvironmentVariableTarget = "Machine"; `
+if ($EnvironmentVariableTarget -eq "") {
+  $EnvironmentVariableTarget = "Machine";
 } `
-if ($EnvironmentVariableTarget -inotin @("User", "Machine")) { `
-  Write-Host "Invalid option."; `
-} else { `
-  try { `
-    $PATH = $env:PATH; `
-    $PIP_NO_INPUT = $env:PIP_NO_INPUT; `
-    $PIP_INDEX_URL = $env:PIP_INDEX_URL; `
-    $ExecutionPolicy = Get-ExecutionPolicy; `
-    `
-    try { `
-      if (!$env:PIPX_HOME) { `
-        $env:PIPX_HOME = [Environment]::GetEnvironmentVariable("PIPX_HOME", $EnvironmentVariableTarget); `
-      }; `
-      if (!$env:PIPX_HOME) { `
-        [Environment]::SetEnvironmentVariable("PIPX_HOME", "C:\Users\Public\.local\pipx", $EnvironmentVariableTarget); `
-        $env:PIPX_HOME = [Environment]::GetEnvironmentVariable("PIPX_HOME", $EnvironmentVariableTarget); `
-      }; `
-      `
-      if (!$env:PIPX_BIN_DIR) { `
-        $env:PIPX_BIN_DIR = [Environment]::GetEnvironmentVariable("PIPX_BIN_DIR", $EnvironmentVariableTarget); `
-      }; `
-      if (!$env:PIPX_BIN_DIR) { `
-        [Environment]::SetEnvironmentVariable("PIPX_BIN_DIR", "C:\Users\Public\.local\bin", $EnvironmentVariableTarget); `
-        $env:PIPX_BIN_DIR = [Environment]::GetEnvironmentVariable("PIPX_BIN_DIR", $EnvironmentVariableTarget); `
-      }; `
-     `
-      if (!$env:VIRTUALENV_SEEDER) { `
-        $env:VIRTUALENV_SEEDER = [Environment]::GetEnvironmentVariable("VIRTUALENV_SEEDER", $EnvironmentVariableTarget); `
-      }; `
-      if (!$env:VIRTUALENV_SEEDER) { `
-        [Environment]::SetEnvironmentVariable("VIRTUALENV_SEEDER", "keyring-subprocess", $EnvironmentVariableTarget); `
-        $env:VIRTUALENV_SEEDER = [Environment]::GetEnvironmentVariable("VIRTUALENV_SEEDER", $EnvironmentVariableTarget); `
-      }; `
-      `
-      if (Test-Path "C:\Users\Public\.local\bin\pipx.exe") { `
-        try { `
-          $env:PATH = [Environment]::GetEnvironmentVariable("PATH", $EnvironmentVariableTarget); `
-          `
-          $pipx = $(Get-Command pipx 2>$null); `
-        } catch { `
-        } finally { `
-          $env:PATH = $PATH `
-        } `
-        `
-        if (-not $pipx) { `
-          $env:PATH = $PATH = "C:\Users\Public\.local\bin;"+$env:PATH; `
-        }; `
-        return `
-      }; `
-      `
-      [Environment]::SetEnvironmentVariable("Path", "C:\Users\Public\.local\bin;" + [Environment]::GetEnvironmentVariable("Path", $EnvironmentVariableTarget), $EnvironmentVariableTarget); `
-      $env:PATH = $PATH = "C:\Users\Public\.local\bin;"+$env:PATH; `
-      `
-      $env:PIP_NO_INPUT = '1'; `
-      $env:PIP_INDEX_URL = 'https://pypi.org/simple/'; `
-    } catch { `
-      throw "Run as Administrator or choose `"User`" as the target environment" `
-    }; `
-    `
-    Set-Location (Get-Item $env:TEMP).FullName; `
-    `
-    <# Use the py executable if it can be found and default to the python executable #> `
-    `
-    $py = $(Get-Command py, python)[0]; `
-    $env:PATH = $(& $py -c "import sys; import sysconfig; import os; from pathlib import Path; from itertools import chain; print(os.pathsep.join(chain(set([str(Path(sys.executable).parent), sysconfig.get_path(`"`"scripts`"`")]), [os.environ[`"`"PATH`"`"]])))"); `
-    `
-    & $py -m venv .venv; `
-    `
-    Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force; `
-    . .\.venv\Scripts\Activate.ps1; `
-    `
-    & "$py" -m pip install -qqq --no-input --isolated pipx; `
-    pipx install --pip-args="--no-input --isolated" pipx; `
-    pipx install --pip-args="--no-input --isolated" keyring; `
-    pipx inject --pip-args="--no-input --isolated" keyring artifacts-keyring; `
-    pipx inject --pip-args="--no-input --isolated" --include-apps --include-deps keyring keyring-subprocess[landmark]; `
-    pipx install --pip-args="--no-input --isolated" virtualenv; `
-    `
-    <# Minor hack since Pipx does not allow us to do this via the cli #> `
-    & "$env:PIPX_HOME\shared\Scripts\pip.exe" install --no-input --isolated keyring-subprocess[sitecustomize]; `
-    `
-    deactivate; `
-    Remove-Item -path .\.venv -Recurse -Force; `
-    `
-    <# Fill virtualenv's wheel cache with keyring-subprocess and up-to-date versions of the embeded wheels #> `
-    <# I might take a stab at making keyring-subprocess a Quine at some point... #> `
-    <# Update: I started and figured out that the size of the vendored dependencies are a problem #> `
-    <# DEFLATE uses a 32KiB sliding window so the size of the .whl before making it a quine should definately be below 64KiB #> `
-    <# Maybe I can get Pip to vendor keyring and keyring-subprocess? #> `
-    virtualenv --upgrade-embed-wheels; `
-    virtualenv --seeder keyring-subprocess --download .venv; `
-    Remove-Item -path .\.venv -Recurse -Force; `
-    `
-  } catch { `
-    $Error; `
-    $env:PATH = $PATH; `
-  } finally { `
-    $env:PIP_NO_INPUT = $PIP_NO_INPUT; `
-    $env:PIP_INDEX_URL = $PIP_INDEX_URL; `
-    if ($ExecutionPolicy) { `
-      Set-ExecutionPolicy -ExecutionPolicy $ExecutionPolicy -Scope Process -Force; `
-    } `
-  } `
+if ($EnvironmentVariableTarget -inotin @("User", "Machine")) {
+  Write-Host "Invalid option.";
+} else {
+  try {
+    $PATH = $env:PATH;
+    $PIP_NO_INPUT = $env:PIP_NO_INPUT;
+    $PIP_INDEX_URL = $env:PIP_INDEX_URL;
+    $ExecutionPolicy = Get-ExecutionPolicy;
+
+    try {
+      if (!$env:PIPX_HOME) {
+        $env:PIPX_HOME = [Environment]::GetEnvironmentVariable("PIPX_HOME", $EnvironmentVariableTarget);
+      };
+      if (!$env:PIPX_HOME) {
+        [Environment]::SetEnvironmentVariable("PIPX_HOME", "C:\Users\Public\.local\pipx", $EnvironmentVariableTarget);
+        $env:PIPX_HOME = [Environment]::GetEnvironmentVariable("PIPX_HOME", $EnvironmentVariableTarget);
+      };
+
+      if (!$env:PIPX_BIN_DIR) {
+        $env:PIPX_BIN_DIR = [Environment]::GetEnvironmentVariable("PIPX_BIN_DIR", $EnvironmentVariableTarget);
+      };
+      if (!$env:PIPX_BIN_DIR) {
+        [Environment]::SetEnvironmentVariable("PIPX_BIN_DIR", "C:\Users\Public\.local\bin", $EnvironmentVariableTarget);
+        $env:PIPX_BIN_DIR = [Environment]::GetEnvironmentVariable("PIPX_BIN_DIR", $EnvironmentVariableTarget);
+      };
+
+      if (!$env:VIRTUALENV_SEEDER) {
+        $env:VIRTUALENV_SEEDER = [Environment]::GetEnvironmentVariable("VIRTUALENV_SEEDER", $EnvironmentVariableTarget);
+      };
+      if (!$env:VIRTUALENV_SEEDER) {
+        [Environment]::SetEnvironmentVariable("VIRTUALENV_SEEDER", "keyring-subprocess", $EnvironmentVariableTarget);
+        $env:VIRTUALENV_SEEDER = [Environment]::GetEnvironmentVariable("VIRTUALENV_SEEDER", $EnvironmentVariableTarget);
+      };
+
+      if (Test-Path "C:\Users\Public\.local\bin\pipx.exe") {
+        try {
+          $env:PATH = [Environment]::GetEnvironmentVariable("PATH", $EnvironmentVariableTarget);
+
+          Get-Command -Name pipx -OutVariable pipx > $null;
+        } catch {
+        } finally {
+          $env:PATH = $PATH
+        }
+
+        if (-not $pipx) {
+          $env:PATH = $PATH = "C:\Users\Public\.local\bin;"+$env:PATH;
+        };
+        return
+      };
+
+      [Environment]::SetEnvironmentVariable("Path", "C:\Users\Public\.local\bin;" + [Environment]::GetEnvironmentVariable("Path", $EnvironmentVariableTarget), $EnvironmentVariableTarget);
+      $env:PATH = $PATH = "C:\Users\Public\.local\bin;"+$env:PATH;
+
+      $env:PIP_NO_INPUT = '1';
+      $env:PIP_INDEX_URL = 'https://pypi.org/simple/';
+    } catch {
+      throw "Run as Administrator or choose `"User`" as the target environment"
+    };
+
+    $venv = Join-Path $env:TEMP ".venv"
+
+    <# Use the py executable if it can be found and default to the python executable #>
+    Get-Command -Name py, python -OutVariable py 2>&1 > $null;
+    $py = $py[0];
+    $env:PATH = $(& $py -c "import sys; import sysconfig; import os; from pathlib import Path; from itertools import chain; print(os.pathsep.join(chain(set([str(Path(sys.executable).parent), sysconfig.get_path(`"`"scripts`"`")]), [os.environ[`"`"PATH`"`"]])))");
+
+    & $py -m venv "$venv";
+
+    Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force;
+    . "$venv\Scripts\Activate.ps1";
+
+    & $py -m pip install -qqq --no-input --isolated pipx;
+    pipx install --pip-args="--no-input --isolated" pipx;
+    pipx install --pip-args="--no-input --isolated" keyring;
+    pipx inject --pip-args="--no-input --isolated" keyring artifacts-keyring;
+    pipx inject --pip-args="--no-input --isolated" --include-apps --include-deps keyring keyring-subprocess[landmark];
+    pipx install --pip-args="--no-input --isolated" virtualenv;
+
+    <# Minor hack since Pipx does not allow us to do this via the cli #>
+    & "$env:PIPX_HOME\shared\Scripts\pip.exe" install --no-input --isolated keyring-subprocess[sitecustomize];
+
+    deactivate;
+    if (Test-Path -Path $venv) {
+      Remove-Item -Path "$venv" -Recurse -Force;
+    }
+
+    <# Fill virtualenv's wheel cache with keyring-subprocess and up-to-date versions of the embeded wheels #>
+    <# I might take a stab at making keyring-subprocess a Quine at some point... #>
+    <# Update: I started and figured out that the size of the vendored dependencies are a problem #>
+    <# DEFLATE uses a 32KiB sliding window so the size of the .whl before making it a quine should definately be below 64KiB #>
+    <# Maybe I can get Pip to vendor keyring and keyring-subprocess? #>
+    virtualenv --upgrade-embed-wheels;
+    virtualenv --seeder keyring-subprocess --download $venv;
+
+  } catch {
+    $Error;
+    $env:PATH = $PATH;
+  } finally {
+    if ($venv -and (Test-Path -Path $venv)) {
+      Remove-Item -Path "$venv" -Recurse -Force;
+    }
+
+    $env:PIP_NO_INPUT = $PIP_NO_INPUT;
+    $env:PIP_INDEX_URL = $PIP_INDEX_URL;
+    if ($ExecutionPolicy) {
+      Set-ExecutionPolicy -ExecutionPolicy $ExecutionPolicy -Scope Process -Force;
+    }
+  }
 }
 ```
