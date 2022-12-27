@@ -125,7 +125,7 @@ if ($EnvironmentVariableTarget -inotin @("User", "Machine")) {
       throw "Run as Administrator or choose `"User`" as the target environment"
     };
 
-    $venv = Join-Path $env:TEMP ".venv"
+    $venv = [System.IO.Path]::GetFullPath((Join-Path $env:TEMP ".venv"));
 
     <# Use the py executable if it can be found and default to the python executable #>
     Get-Command -Name py, python -OutVariable py 2>&1 > $null;
